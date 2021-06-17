@@ -73,9 +73,9 @@ videoLength=60*60*1000
 randomsec=random.randint(0,videoLength)
 
 
-vc = cv2.VideoCapture("birds_video.mp4")
-# If you want to find birds using your camera comment the above line and uncomment the below line
-#vc = cv2.VideoCapture(0)
+#vc = cv2.VideoCapture("birds_video.mp4")
+# If you want to record birds using your camera comment the above line and uncomment the below line. If you want to find birds in a video uncomment the line above and comment the line below :)
+vc = cv2.VideoCapture(0)
 vc.set(cv2.CAP_PROP_POS_MSEC, randomsec)
 if vc.isOpened():
     width = vc.get(cv2.CAP_PROP_FRAME_WIDTH)
