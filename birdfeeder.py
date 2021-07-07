@@ -102,8 +102,8 @@ else:
 
 while rval:
     #You enter this loop once per frame
-    #uncomment the below line if you need to flip the camera upside down.
     rval, frame = vc.read()
+    #uncomment the below line if you need to flip the camera upside down.
     frame = cv2.flip(frame,-1)
     key = cv2.waitKey(20)
     if key == 27: # exit on ESC
