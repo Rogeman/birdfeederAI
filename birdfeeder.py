@@ -69,13 +69,13 @@ def birdRatio(videoName):
     vc2.release()
     return totalBirdFrames/totalFrames
 
-videoLength=60*60*1000
+videoLength=8*60*60*1000
 randomsec=random.randint(0,videoLength)
 
 
-vc = cv2.VideoCapture(os.path.dirname( __file__)+"/birds_video.mp4")
+#vc = cv2.VideoCapture(os.path.dirname( __file__)+"/birds_video.mp4")
 # If you want to record birds using your camera comment the above line and uncomment the below line. If you want to find birds in a video uncomment the line above and comment the line below :)
-#vc = cv2.VideoCapture(0)
+vc = cv2.VideoCapture(0)
 vc.set(cv2.CAP_PROP_POS_MSEC, randomsec)
 if vc.isOpened():
     width = vc.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -88,6 +88,7 @@ else:
 
 recording= False
 framerecorded = 0
+framecounter = 0
 birdinFrame=False
 fourcc = cv2.VideoWriter_fourcc(*'h264')
 #out = cv2.VideoWriter('output.mp4',fourcc,20.0,(640,480))
@@ -102,11 +103,17 @@ else:
 while rval:
     #You enter this loop once per frame
     #uncomment the below line if you need to flip the camera upside down.
-    #frame = cv2.flip(frame,-1)
     rval, frame = vc.read()
+    frame = cv2.flip(frame,-1)
     key = cv2.waitKey(20)
     if key == 27: # exit on ESC
         break
+    framecounter = framecounter + 1
+    if (framecounter > 60):
+    # Write frame to disk every 60 frames so we can see what the camera is seeing    
+        print("Escribo frame a fichero")
+        framecounter = 0
+        cv2.imwrite(os.path.dirname( __file__)+"/webserver/currentframe.jpg",frame)
     if (birdinFrame==False):
         #Check if this frame has a bird in it
         birdinFrame= applySSD(frame)
@@ -132,7 +139,7 @@ while rval:
             print("Tweeting bird video")
             video = open(filename,'rb')
             response = twitter.upload_video(media=video, media_type='video/mp4', media_category='tweet_video', check_progress=True)
-            twitter.update_status(status='birdfeeder 0.2', media_ids=[response['media_id']])
+            twitter.update_status(status='birdfeeder 0.3', media_ids=[response['media_id']])
             birdsinvideo=0
             video.close()
         randomsec=random.randint(0,videoLength)
