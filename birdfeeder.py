@@ -139,7 +139,7 @@ while rval:
             print("Tweeting bird video")
             video = open(filename,'rb')
             response = twitter.upload_video(media=video, media_type='video/mp4', media_category='tweet_video', check_progress=True)
-            twitter.update_status(status='birdfeeder 0.4', media_ids=[response['media_id']])
+            twitter.update_status(status='birdfeeder 0.5', media_ids=[response['media_id']])
             birdsinvideo=0
             video.close()
         randomsec=random.randint(0,videoLength)
