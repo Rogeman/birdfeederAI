@@ -24,8 +24,9 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
     "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
     "sofa", "train", "tvmonitor"]
 COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
-shared_dir =os.path.dirname( __file__)+'/MobileNet-SSD/'
-net = cv2.dnn.readNetFromCaffe(shared_dir+ 'deploy.prototxt' , shared_dir+ 'mobilenet_iter_73000.caffemodel')
+birdfeeder_dir=os.path.dirname(os.path.abspath(__file__))
+mobilenet_dir=birdfeeder_dir+'/MobileNet-SSD/'
+net = cv2.dnn.readNetFromCaffe(mobilenet_dir+ 'deploy.prototxt' , mobilenet_dir+ 'mobilenet_iter_73000.caffemodel')
 blob=None
 
 def applySSD(image):
@@ -73,7 +74,7 @@ videoLength=8*60*60*1000
 randomsec=random.randint(0,videoLength)
 
 
-#vc = cv2.VideoCapture(os.path.dirname( __file__)+"/birds_video.mp4")
+#vc = cv2.VideoCapture(birdfeeder_dir+"/birds_video.mp4")
 # If you want to record birds using your camera comment the above line and uncomment the below line. If you want to find birds in a video uncomment the line above and comment the line below :)
 vc = cv2.VideoCapture(0)
 vc.set(cv2.CAP_PROP_POS_MSEC, randomsec)
@@ -92,7 +93,7 @@ framecounter = 0
 birdinFrame=False
 fourcc = cv2.VideoWriter_fourcc(*'h264')
 #out = cv2.VideoWriter('output.mp4',fourcc,20.0,(640,480))
-out = cv2.VideoWriter(os.path.dirname( __file__)+'/output.mp4',fourcc,fps,(int(width),int(height)))
+out = cv2.VideoWriter(birdfeeder_dir+'/output.mp4',fourcc,fps,(int(width),int(height)))
 
 if vc.isOpened(): # try to get the first frame
     rval, frame = vc.read()
@@ -111,9 +112,8 @@ while rval:
     framecounter = framecounter + 1
     if (framecounter > 60):
     # Write frame to disk every 60 frames so we can see what the camera is seeing    
-        print("Escribo frame a fichero")
         framecounter = 0
-        cv2.imwrite(os.path.dirname( __file__)+"/webserver/currentframe.jpg",frame)
+        cv2.imwrite(birdfeeder_dir+"/webserver/currentframe.jpg",frame)
     if (birdinFrame==False):
         #Check if this frame has a bird in it
         birdinFrame= applySSD(frame)
@@ -132,7 +132,7 @@ while rval:
         birdinFrame=False
         framerecorded = 0
         out.release()
-        filename = os.path.dirname( __file__)+"/output.mp4"
+        filename = birdfeeder_dir+"/output.mp4"
         birdsinvideo= birdRatio(filename)
         if (birdsinvideo> 0.50):
             # if the recorded video has more than 50% of frames with a bird in it then tweet it
@@ -144,8 +144,8 @@ while rval:
             video.close()
         randomsec=random.randint(0,videoLength)
         vc.set(cv2.CAP_PROP_POS_MSEC, randomsec)
-        os.remove(os.path.dirname( __file__)+'/output.mp4')
-        out = cv2.VideoWriter(os.path.dirname( __file__)+'/output.mp4',fourcc,fps,(int(width),int(height)))
+        os.remove(birdfeeder_dir+'/output.mp4')
+        out = cv2.VideoWriter(birdfeeder_dir+'/output.mp4',fourcc,fps,(int(width),int(height)))
 
 
 
