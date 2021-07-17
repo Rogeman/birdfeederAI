@@ -2,7 +2,9 @@ import numpy as np
 import cv2
 import random
 import os
+import logging
 from twython import Twython
+from twython import TwythonError
 
 from auth import (
         consumer_key,
@@ -25,6 +27,7 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
     "sofa", "train", "tvmonitor"]
 COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 birdfeeder_dir=os.path.dirname(os.path.abspath(__file__))
+logging.basicConfig(filename=birdfeeder_dir+'/log/birdfeederAI.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
 mobilenet_dir=birdfeeder_dir+'/MobileNet-SSD/'
 net = cv2.dnn.readNetFromCaffe(mobilenet_dir+ 'deploy.prototxt' , mobilenet_dir+ 'mobilenet_iter_73000.caffemodel')
 blob=None
@@ -84,7 +87,8 @@ if vc.isOpened():
     fps = vc.get(cv2.CAP_PROP_FPS)
     fcount = vc.get(cv2.CAP_PROP_FRAME_COUNT)
 else:
-    print("Error - Can't open video")
+    logging.error('Can\'t open video')
+
     exit()
 
 recording= False
@@ -101,6 +105,7 @@ if vc.isOpened(): # try to get the first frame
 else:
     rval = False
 
+logging.debug('Started main loop')
 while rval:
     #You enter this loop once per frame
     rval, frame = vc.read()
@@ -119,7 +124,7 @@ while rval:
         birdinFrame= applySSD(frame)
     if (birdinFrame== True and recording== False):
         #You have detected the first bird in a frame, start recording
-        print("Started recording video")
+        logging.info('Started recording video')
         recording=True
     if (recording == True):
         #write the frame to file keep track of how many frames you have saved.
@@ -127,19 +132,23 @@ while rval:
         out.write(frame)
     if (framerecorded > 200):
         #after 200 frames stop recording
-        print("Checking recorded video")
+        logging.info('Checking recorded video')
         recording = False
         birdinFrame=False
         framerecorded = 0
         out.release()
         filename = birdfeeder_dir+"/output.mp4"
         birdsinvideo= birdRatio(filename)
+        logging.debug('percentage of bird in video: '+birdsinvideo)
         if (birdsinvideo> 0.50):
             # if the recorded video has more than 50% of frames with a bird in it then tweet it
-            print("Tweeting bird video")
+            logging.info('Tweeting bird video')
             video = open(filename,'rb')
-            response = twitter.upload_video(media=video, media_type='video/mp4', media_category='tweet_video', check_progress=True)
-            twitter.update_status(status='birdfeeder 0.5', media_ids=[response['media_id']])
+            try:
+                response = twitter.upload_video(media=video, media_type='video/mp4', media_category='tweet_video', check_progress=True)
+                twitter.update_status(status='birdfeeder 0.5', media_ids=[response['media_id']])
+            except TwythonError as e:
+                logging.error('Twitter error:'+str(e))
             birdsinvideo=0
             video.close()
         randomsec=random.randint(0,videoLength)
