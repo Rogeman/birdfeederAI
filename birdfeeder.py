@@ -33,6 +33,7 @@ net = cv2.dnn.readNetFromCaffe(mobilenet_dir+ 'deploy.prototxt' , mobilenet_dir+
 blob=None
 
 def applySSD(image):
+    logging.debug('Started applySSD function')
     global blob
     mybird = bool(False)
     blob = cv2.dnn.blobFromImage(cv2.resize(image, (300, 300)), 0.007843, (300, 300), 127.5)
@@ -55,6 +56,7 @@ def applySSD(image):
     return mybird
 
 def birdRatio(videoName):
+    logging.debug('Started birdRatio function')
     totalBirdFrames = 1
     totalFrames = 1
     vc2 = cv2.VideoCapture(videoName)
@@ -62,8 +64,11 @@ def birdRatio(videoName):
         rval2,frame2 = vc2.read()
     else:
         rval2 = False
+        logging.error('Can\'t open video for checking frames for birds')
+        exit()
 
     while rval2:
+        logging.debug('birdRatio video frames loop '+str(totalBirdFrames)+"/"+str(totalFrames))
         birdinFrame = applySSD(frame2)
         rval2, frame2 = vc2.read()
         if (birdinFrame):
@@ -73,7 +78,7 @@ def birdRatio(videoName):
     vc2.release()
     return totalBirdFrames/totalFrames
 
-videoLength=8*60*60*1000
+videoLength=3*60*1000
 randomsec=random.randint(0,videoLength)
 
 
@@ -88,7 +93,6 @@ if vc.isOpened():
     fcount = vc.get(cv2.CAP_PROP_FRAME_COUNT)
 else:
     logging.error('Can\'t open video')
-
     exit()
 
 recording= False
@@ -124,7 +128,7 @@ while rval:
         birdinFrame= applySSD(frame)
     if (birdinFrame== True and recording== False):
         #You have detected the first bird in a frame, start recording
-        logging.info('Started recording video')
+        logging.info('Saw a bird, started recording video')
         recording=True
     if (recording == True):
         #write the frame to file keep track of how many frames you have saved.
@@ -138,8 +142,9 @@ while rval:
         framerecorded = 0
         out.release()
         filename = birdfeeder_dir+"/output.mp4"
+        logging.debug('About to check frame for birds')
         birdsinvideo= birdRatio(filename)
-        logging.debug('percentage of bird in video: '+birdsinvideo)
+        logging.debug('percentage of bird in video: '+str(birdsinvideo))
         if (birdsinvideo> 0.50):
             # if the recorded video has more than 50% of frames with a bird in it then tweet it
             logging.info('Tweeting bird video')
